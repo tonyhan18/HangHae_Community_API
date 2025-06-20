@@ -1,77 +1,109 @@
 # 시퀀스 다이어그램
 
+## 첫 번째: 전체 게시글 목록 조회 API의 시퀀스 다이어그램
 ```mermaid
 sequenceDiagram
     participant Client
-    participant Controller
-    participant Service
-    participant Repository
-    participant DB
+    participant BoardController
+    participant BoardService
+    participant BoardRepository
+    participant PostgreSQL
 
     %% 전체 게시글 목록 조회
-    Client->>Controller: GET /posts
-    Controller->>Service: findAllPosts()
-    Service->>Repository: findAllByOrderByCreatedAtDesc()
-    Repository->>DB: SELECT * FROM posts ORDER BY created_at DESC
-    DB-->>Repository: 게시글 목록 반환
-    Repository-->>Service: 게시글 목록 반환
-    Service-->>Controller: 게시글 목록 반환
-    Controller-->>Client: 게시글 목록 반환
+    Client->>BoardController: GET /api/boards
+    BoardController->>BoardService: getAllBoards()
+    BoardService->>BoardRepository: findAllByOrderByCreatedAtDesc()
+    BoardRepository->>PostgreSQL: SELECT * FROM board ORDER BY created_at DESC
+    PostgreSQL-->>BoardRepository: List<Board>
+    BoardRepository-->>BoardService: List<Board>
+    BoardService-->>BoardController: List<Board>
+    BoardController-->>Client: Response (List<Board>)
+```
+
+## 두 번째: 게시글 작성
+```mermaid
+sequenceDiagram
+    participant Client
+    participant BoardController
+    participant BoardService
+    participant BoardRepository
+    participant PostgreSQL
 
     %% 게시글 작성
-    Client->>Controller: POST /posts (제목, 작성자명, 비밀번호, 내용)
-    Controller->>Service: createPost(데이터)
-    Service->>Repository: save(게시글)
-    Repository->>DB: INSERT INTO posts ...
-    DB-->>Repository: 저장된 게시글 반환
-    Repository-->>Service: 저장된 게시글 반환
-    Service-->>Controller: 저장된 게시글 반환
-    Controller-->>Client: 저장된 게시글 반환
+    Client->>BoardController: POST /api/boards (BoardCreateRequest)
+    BoardController->>BoardService: createBoard(BoardCreateRequest)
+    BoardService->>BoardRepository: save(Board)
+    BoardRepository->>PostgreSQL: INSERT INTO board ...
+    PostgreSQL-->>BoardRepository: Saved Board (with id)
+    BoardRepository-->>BoardService: Board
+    BoardService-->>BoardController: Board
+    BoardController-->>Client: Response (Board)
+```
+
+## 세 번째: 선택한 게시글 조회
+```mermaid
+sequenceDiagram
+    participant Client
+    participant BoardController
+    participant BoardService
+    participant BoardRepository
+    participant PostgreSQL
 
     %% 선택한 게시글 조회
-    Client->>Controller: GET /posts/{id}
-    Controller->>Service: findPostById(id)
-    Service->>Repository: findById(id)
-    Repository->>DB: SELECT * FROM posts WHERE id=?
-    DB-->>Repository: 게시글 반환
-    Repository-->>Service: 게시글 반환
-    Service-->>Controller: 게시글 반환
-    Controller-->>Client: 게시글 반환
+    Client->>BoardController: GET /api/boards/{id}
+    BoardController->>BoardService: getBoard(id)
+    BoardService->>BoardRepository: findById(id)
+    BoardRepository->>PostgreSQL: SELECT * FROM board WHERE id = ?
+    PostgreSQL-->>BoardRepository: Board
+    BoardRepository-->>BoardService: Board
+    BoardService-->>BoardController: Board
+    BoardController-->>Client: Response (Board)
+```
+
+## 네 번째: 선택한 게시글 수정
+```mermaid
+sequenceDiagram
+    participant Client
+    participant BoardController
+    participant BoardService
+    participant BoardRepository
+    participant PostgreSQL
 
     %% 선택한 게시글 수정
-    Client->>Controller: PUT /posts/{id} (수정데이터, 비밀번호)
-    Controller->>Service: updatePost(id, 수정데이터, 비밀번호)
-    Service->>Repository: findById(id)
-    Repository->>DB: SELECT * FROM posts WHERE id=?
-    DB-->>Repository: 게시글 반환
-    Service->>Service: 비밀번호 일치 여부 확인
-    alt 비밀번호 일치
-        Service->>Repository: save(수정된 게시글)
-        Repository->>DB: UPDATE posts ...
-        DB-->>Repository: 수정된 게시글 반환
-        Repository-->>Service: 수정된 게시글 반환
-        Service-->>Controller: 수정된 게시글 반환
-        Controller-->>Client: 수정된 게시글 반환
-    else 비밀번호 불일치
-        Service-->>Controller: 에러 반환
-        Controller-->>Client: 에러 반환
-    end
+    Client->>BoardController: PUT /api/boards/{id} (BoardUpdateRequest)
+    BoardController->>BoardService: updateBoard(id, ...)
+    BoardService->>BoardRepository: findById(id)
+    BoardRepository->>PostgreSQL: SELECT * FROM board WHERE id = ?
+    PostgreSQL-->>BoardRepository: Board
+    BoardRepository-->>BoardService: Board
+    BoardService->>BoardRepository: save(Board)
+    BoardRepository->>PostgreSQL: UPDATE board SET ... WHERE id = ?
+    PostgreSQL-->>BoardRepository: Updated Board
+    BoardRepository-->>BoardService: Board
+    BoardService-->>BoardController: Board
+    BoardController-->>Client: Response (Board)
+```
+
+## 다섯 번째: 선택한 게시글 삭제
+```mermaid
+sequenceDiagram
+    participant Client
+    participant BoardController
+    participant BoardService
+    participant BoardRepository
+    participant PostgreSQL
 
     %% 선택한 게시글 삭제
-    Client->>Controller: DELETE /posts/{id} (비밀번호)
-    Controller->>Service: deletePost(id, 비밀번호)
-    Service->>Repository: findById(id)
-    Repository->>DB: SELECT * FROM posts WHERE id=?
-    DB-->>Repository: 게시글 반환
-    Service->>Service: 비밀번호 일치 여부 확인
-    alt 비밀번호 일치
-        Service->>Repository: delete(게시글)
-        Repository->>DB: DELETE FROM posts WHERE id=?
-        DB-->>Repository: 삭제 성공
-        Service-->>Controller: 성공 표시 반환
-        Controller-->>Client: 성공 표시 반환
-    else 비밀번호 불일치
-        Service-->>Controller: 에러 반환
-        Controller-->>Client: 에러 반환
-    end
+    Client->>BoardController: DELETE /api/boards/{id} (BoardDeleteRequest)
+    BoardController->>BoardService: deleteBoard(id, ...)
+    BoardService->>BoardRepository: findById(id)
+    BoardRepository->>PostgreSQL: SELECT * FROM board WHERE id = ?
+    PostgreSQL-->>BoardRepository: Board
+    BoardRepository-->>BoardService: Board
+    BoardService->>BoardRepository: deleteById(id)
+    BoardRepository->>PostgreSQL: DELETE FROM board WHERE id = ?
+    PostgreSQL-->>BoardRepository: (OK)
+    BoardRepository-->>BoardService: (OK)
+    BoardService-->>BoardController: Success/Fail
+    BoardController-->>Client: Response (Success/Fail)
 ```
