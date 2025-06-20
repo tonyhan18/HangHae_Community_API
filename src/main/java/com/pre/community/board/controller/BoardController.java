@@ -1,6 +1,7 @@
 package com.pre.community.board.controller;
 
 import com.pre.community.board.domain.Board;
+import com.pre.community.board.dto.BoardCreateRequest;
 import com.pre.community.board.service.BoardService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -25,9 +26,15 @@ public class BoardController {
         return boardService.getAllBoards();
     }
 
-    // 게시글 작성
+    // 게시글 작성 (DTO 적용)
     @PostMapping
-    public ResponseEntity<Board> createBoard(@RequestBody Board board) {
+    public ResponseEntity<Board> createBoard(@RequestBody BoardCreateRequest request) {
+        Board board = new Board(
+            request.getTitle(),
+            request.getAuthor(),
+            request.getPassword(),
+            request.getContent()
+        );
         Board saved = boardService.createBoard(board);
         return ResponseEntity.ok(saved);
     }
