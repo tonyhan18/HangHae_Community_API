@@ -9,7 +9,7 @@ Spring Boot, JPA, JWT, Docker, PostgreSQL, Swagger를 활용한 게시글 API �
 - Swagger UI로 API 테스트 지원
 - Docker Compose로 PostgreSQL 연동
 
----
+### [시퀀스 다이어그램](src/main/java/com/pre/community/docs/sequence.md)
 
 ## 기술 스택
 - Java 17
